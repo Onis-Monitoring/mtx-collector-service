@@ -16,7 +16,7 @@ services:
             - ./prometheus:/etc/prometheus
             - prometheus-data:/prometheus
     prometheus:
-        image: "quay.io/prometheus/prometheus"
+        image: "quay.io/prometheus/prometheus:v2.25.2"
         ports:
             - "9090:9090"
         networks:

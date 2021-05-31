@@ -9,6 +9,8 @@ WORKDIR /app
 
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
+ENV PYTHONUNBUFFERED=0
+
 COPY . /app
 
 EXPOSE 5000

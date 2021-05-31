@@ -1,16 +1,33 @@
 from prometheus_client import Summary, Info, Gauge
 
 METRIC_1 = Info('mef_file_backlog_status', 'Description of mef backlog')
-METRIC_2 = Info('mef_gap_file', 'Description of mef gaps')
+METRIC_2 = [Info('mef_gap_file1', 'Description of mef gaps sub1'), Info('mef_gap_file2', 'Description of mef gaps sub2'), Info('mef_gap_file3', 'Description of mef gaps sub3')]
 METRIC_3 = Info('pricing_status', 'Description of pricing')
+METRIC_4 = Info('event_repository_loader', 'Event Repository Loader Ranges')
 
 PRICING_STATUS = 'https://matrixx-rsgw.mx.att.com/rsgateway/data/json/pricing/status'
 
 # MEF_LOG_FILE = r'D:\Trabajo\Onis\Monitoring\Monitoring_v2\grafana-python-datasource-master\grafana-python-datasource-master\flask\publish_mefs.log'
 MEF_LOG_FILE = r'/etc/prometheus/publish_mefs.log'
+MEF_LOG_FILE_PATH = r'/mnt/shared-logging-storage-s{0}e{1}/publ-s{0}e{1}-{2}/{3}'
+# MEF_LOG_FILE_PATH = r'/etc/prometheus/shared-logging-storage-s{0}e{1}/publ-s{0}e{1}-{2}/{3}'
+MEF_LOG_FILE_NAME = 'publish_mefs.log'
+MEF_LOG_FILE_PATH_TMP = '/mnt/shared-logging-storage-s1e1/publ-s1e1-0/publish_mefs.log'
 
-PATH_TO_MEF_BACKLOG = r'/etc/prometheus/publish_mefs.log'
-# PATH_TO_MEF_BACKLOG = r'./publish_mefs.log'
+# PATH_TO_MEF_BACKLOG = r'/etc/prometheus/publish_mefs.log'
+PATH_TO_MEF_BACKLOG = r'./publish_'
+PATH_TO_MEF_BACKLOG = r'/mnt/fast-shared-storage-s{}e{}/local_{}_2_{}/staging/mef_temp'
+
+ERL_USER = "MtxAdmin"
+ERL_HOST = "--host=mongo-0.mongo.mongodb.svc.cluster.local"
+EVENT_REPOSITORY_LOADER = ["print_event_repository_loader_trace.py", "-g", "-u", ERL_USER, ERL_HOST]
+
+
+SNMP_ADRESS = 'publ-cls-s{}e{}:4700'
+
+SUBDOMAINS = 1
+ENGINES = 2
+REPLICAS = 1
 
 PRICING_STATUS_JSON_MOCK = {
     "$": "MtxResponsePricingStatus",
