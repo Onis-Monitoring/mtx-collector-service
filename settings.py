@@ -1,5 +1,6 @@
 from prometheus_client import Summary, Info, Gauge
 
+# Metrics Definition
 METRIC_1 = Info('mef_file_backlog_status', 'Description of mef backlog')
 METRIC_2 = [Info('mef_gap_file1', 'Description of mef gaps sub1'), Info('mef_gap_file2', 'Description of mef gaps sub2'), Info('mef_gap_file3', 'Description of mef gaps sub3')]
 METRIC_3 = Info('pricing_status', 'Description of pricing')
@@ -12,16 +13,13 @@ MEF_LOG_FILE = r'/etc/prometheus/publish_mefs.log'
 MEF_LOG_FILE_PATH = r'/mnt/shared-logging-storage-s{0}e{1}/publ-s{0}e{1}-{2}/{3}'
 # MEF_LOG_FILE_PATH = r'/etc/prometheus/shared-logging-storage-s{0}e{1}/publ-s{0}e{1}-{2}/{3}'
 MEF_LOG_FILE_NAME = 'publish_mefs.log'
-MEF_LOG_FILE_PATH_TMP = '/mnt/shared-logging-storage-s1e1/publ-s1e1-0/publish_mefs.log'
-
 # PATH_TO_MEF_BACKLOG = r'/etc/prometheus/publish_mefs.log'
-PATH_TO_MEF_BACKLOG = r'./publish_'
-PATH_TO_MEF_BACKLOG = r'/mnt/fast-shared-storage-s{}e{}/local_{}_2_{}/staging/mef_temp'
+# PATH_TO_MEF_BACKLOG = r'./publish_'
+PATH_TO_MEF_BACKLOG = r'/mnt/fast-shared-storage-s{0}e{1}/local_{1}_2_{2}/staging/mef_temp'
 
 ERL_USER = "MtxAdmin"
 ERL_HOST = "--host=10.237.3.143"
 EVENT_REPOSITORY_LOADER = ["print_event_repository_loader_trace.py", "-g", "-u", ERL_USER, ERL_HOST]
-
 
 SNMP_ADRESS = 'publ-cls-s{}e{}:4700'
 

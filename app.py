@@ -19,7 +19,7 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app, Summary, Info, Gauge
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
 from datetime import date
-from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4, PRICING_STATUS, MEF_LOG_FILE, PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, MEF_LOG_FILE_PATH_TMP, SUBDOMAINS, ENGINES, REPLICAS, EVENT_REPOSITORY_LOADER
+from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4, PRICING_STATUS, MEF_LOG_FILE, PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, ENGINES, REPLICAS, EVENT_REPOSITORY_LOADER
 from time import mktime
 from snmp_service import get_engine_status
 
@@ -127,6 +127,36 @@ def getActivePublishingBlade():
             engine += 1
         subdomain += 1
 
+def getPublishing():
+    subdomain = 1
+    PATH = ''
+    while subdomain <= SUBDOMAINS:
+        engine = 1
+        while engine <= ENGINES:
+            replica = 0
+            snmp_add = SNMP_ADRESS.format(subdomain, engine)
+            isActive = get_engine_status(engine, snmp_add)
+            print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
+            #Encontrar engine activo
+            if isActive['id'] == 8:
+                print('isActive[] == 8')
+                while replica <= (REPLICAS - 1):
+                    PATH = PATH_TO_MEF_BACKLOG.format(subdomain, engine, (replica + 1))
+                    print('PATH {}'.format(PATH))
+                    try:
+                        files = os.listdir(PATH)
+                        for file in files:
+                            if '.xml.gz' in file:
+                                path = '{PATH}/{file}'
+                                stat = os.stat(path)
+                                date1 = True if datetime.now().timestamp() - stat.st_mtime > 60 else False
+                                print('Backlog status {}'.format(date1))
+                    except Exception as e:
+                        print(e)
+                    replica += 1
+            engine += 1
+        subdomain += 1
+
 @app.route("/testPath")
 @cross_origin()
 def testPath():
@@ -140,7 +170,11 @@ def testPath():
     # isActive = get_engine_status(1, snmp_add)
     # print('STATUS:')
     # print(isActive)
-    getActivePublishingBlade()
+    #getActivePublishingBlade()
+
+    #31-05-2021
+    getPublishing()
+    
 
     return make_wsgi_app()
 
