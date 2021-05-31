@@ -21,7 +21,7 @@ from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGIS
 from datetime import date
 from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4, PRICING_STATUS, MEF_LOG_FILE, PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, ENGINES, REPLICAS, EVENT_REPOSITORY_LOADER
 from time import mktime
-from snmp_service import get_engine_status
+# from snmp_service import get_engine_status
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -93,10 +93,12 @@ def getActivePublishingBlade():
             tmp_time = 0.0
             tmp_path = ''
             snmp_add = SNMP_ADRESS.format(subdomain, engine)
-            isActive = get_engine_status(engine, snmp_add)
+            # isActive = get_engine_status(engine, snmp_add)
+            isActive = True
             print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
             #Encontrar engine activo
-            if isActive['id'] == 8:
+            # if isActive['id'] == 8:
+            if isActive:
                 print('isActive[] == 8')
                 while replica <= (REPLICAS - 1):
                     PATH = MEF_LOG_FILE_PATH.format(subdomain, engine, replica, MEF_LOG_FILE_NAME)
@@ -135,10 +137,12 @@ def getPublishing():
         while engine <= ENGINES:
             replica = 0
             snmp_add = SNMP_ADRESS.format(subdomain, engine)
-            isActive = get_engine_status(engine, snmp_add)
+            # isActive = get_engine_status(engine, snmp_add)
+            isActive = True
             print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
             #Encontrar engine activo
-            if isActive['id'] == 8:
+            # if isActive['id'] == 8:
+            if isActive:
                 print('isActive[] == 8')
                 while replica <= (REPLICAS - 1):
                     PATH = PATH_TO_MEF_BACKLOG.format(subdomain, engine, (replica + 1))
@@ -290,36 +294,6 @@ def check_event_loader():
     else:
         METRIC_4.info({'range_1': ''})
     return make_wsgi_app()
-
-class MEFFileBacklogThread(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.board = 1
-
-    def run(self):
-        i = Gauge('mef_file_backlog_status', 'Description of pricing', ['method', 'path'])
-        while True:
-            if platform.system() == 'Windows':
-                date1 = 1 if datetime.now().timestamp() - os.path.getctime(path_to_file) > 60 else 0
-                i.labels(method='get', path=path_to_file).set(date1)
-            else:
-                stat = os.stat(path_to_file)
-                
-                try:
-                    date1 = 1 if datetime.now().timestamp() - stat.st_birthtime > 60 else 0
-                    i.labels(method='get', path=path_to_file).set(date1)
-                except AttributeError:
-                    # We're probably on Linux. No easy way to get creation dates here,
-                    # so we'll settle for when its content was last modified.
-                    date1 = 1 if datetime.now().timestamp() - stat.st_mtime > 60 else 0
-                    i.labels(method='get', path=path_to_file).set(date1)
-            time.sleep(60)
-    
-    def stop(self):
-        self._stop.set()
-
-# backlogThread = MEFFileBacklogThread()
-
 
 if __name__ == '__main__':
     # backlogThread.start()

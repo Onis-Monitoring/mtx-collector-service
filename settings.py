@@ -10,12 +10,12 @@ PRICING_STATUS = 'https://matrixx-rsgw.mx.att.com/rsgateway/data/json/pricing/st
 
 # MEF_LOG_FILE = r'D:\Trabajo\Onis\Monitoring\Monitoring_v2\grafana-python-datasource-master\grafana-python-datasource-master\flask\publish_mefs.log'
 MEF_LOG_FILE = r'/etc/prometheus/publish_mefs.log'
-MEF_LOG_FILE_PATH = r'/mnt/shared-logging-storage-s{0}e{1}/publ-s{0}e{1}-{2}/{3}'
-# MEF_LOG_FILE_PATH = r'/etc/prometheus/shared-logging-storage-s{0}e{1}/publ-s{0}e{1}-{2}/{3}'
+# MEF_LOG_FILE_PATH = r'/mnt/shared-logging-storage-s{0}e{1}/publ-s{0}e{1}-{2}/{3}'
+MEF_LOG_FILE_PATH = r'/etc/prometheus/shared-logging-storage-s{0}e{1}/publ-s{0}e{1}-{2}/{3}'
 MEF_LOG_FILE_NAME = 'publish_mefs.log'
-# PATH_TO_MEF_BACKLOG = r'/etc/prometheus/publish_mefs.log'
+PATH_TO_MEF_BACKLOG = r'/etc/prometheus'
 # PATH_TO_MEF_BACKLOG = r'./publish_'
-PATH_TO_MEF_BACKLOG = r'/mnt/fast-shared-storage-s{0}e{1}/local_{1}_2_{2}/staging/mef_temp'
+# PATH_TO_MEF_BACKLOG = r'/mnt/fast-shared-storage-s{0}e{1}/local_{1}_2_{2}/staging/mef_temp'
 
 ERL_USER = "MtxAdmin"
 ERL_HOST = "--host=10.237.3.143"
@@ -24,8 +24,8 @@ EVENT_REPOSITORY_LOADER = ["print_event_repository_loader_trace.py", "-g", "-u",
 SNMP_ADRESS = 'publ-cls-s{}e{}:4700'
 
 SUBDOMAINS = 1
-ENGINES = 2
-REPLICAS = 2
+ENGINES = 1
+REPLICAS = 1
 
 PRICING_STATUS_JSON_MOCK = {
     "$": "MtxResponsePricingStatus",
