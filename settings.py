@@ -19,7 +19,7 @@ PATH_TO_MEF_BACKLOG = r'./publish_'
 PATH_TO_MEF_BACKLOG = r'/mnt/fast-shared-storage-s{}e{}/local_{}_2_{}/staging/mef_temp'
 
 ERL_USER = "MtxAdmin"
-ERL_HOST = "--host=mongo-0.mongo.mongodb.svc.cluster.local"
+ERL_HOST = "--host=10.237.3.143"
 EVENT_REPOSITORY_LOADER = ["print_event_repository_loader_trace.py", "-g", "-u", ERL_USER, ERL_HOST]
 
 
@@ -27,7 +27,7 @@ SNMP_ADRESS = 'publ-cls-s{}e{}:4700'
 
 SUBDOMAINS = 1
 ENGINES = 2
-REPLICAS = 1
+REPLICAS = 2
 
 PRICING_STATUS_JSON_MOCK = {
     "$": "MtxResponsePricingStatus",
