@@ -129,7 +129,7 @@ def getActivePublishingBlade():
             engine += 1
         subdomain += 1
 
-def getPublishing():
+def getMefBackLog():
     subdomain = 1
     PATH = ''
     while subdomain <= SUBDOMAINS:
@@ -139,22 +139,27 @@ def getPublishing():
             snmp_add = SNMP_ADRESS.format(subdomain, engine)
             # isActive = get_engine_status(engine, snmp_add)
             isActive = True
-            print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
+            # print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
             #Encontrar engine activo
             # if isActive['id'] == 8:
             if isActive:
                 print('isActive[] == 8')
                 while replica <= (REPLICAS - 1):
-                    PATH = PATH_TO_MEF_BACKLOG.format(subdomain, engine, (replica + 1))
+                    # PATH = PATH_TO_MEF_BACKLOG.format(subdomain, engine, (replica + 1))
+                    PATH = '/etc/prometheus/'
                     print('PATH {}'.format(PATH))
                     try:
                         files = os.listdir(PATH)
+                        backlog = False
                         for file in files:
                             if '.xml.gz' in file:
-                                path = '{PATH}/{file}'
+                                path = '{}{}'.format(PATH, file)
                                 stat = os.stat(path)
-                                date1 = True if datetime.now().timestamp() - stat.st_mtime > 60 else False
-                                print('Backlog status {}'.format(date1))
+                                backlog = True if mktime(datetime.now().timetuple()) - stat.st_mtime > 1200 else False
+                                print('Backlog status {}'.format(backlog))
+                                if backlog:
+                                    break
+                        METRIC_1[replica].info({'backlog_status': str(backlog)})   
                     except Exception as e:
                         print(e)
                     replica += 1
@@ -177,7 +182,7 @@ def testPath():
     #getActivePublishingBlade()
 
     #31-05-2021
-    getPublishing()
+    getMefBackLog()
     
 
     return make_wsgi_app()
@@ -190,8 +195,11 @@ def index():
 @app.route("/api/checkPricing")
 @cross_origin()
 def check_pricing_status():
+    reason = 'Not Found'
     try:
         proc= requests.get(PRICING_STATUS, verify=False, timeout=5)
+        if proc.reason:
+            reason = proc.reason
         json_res = json.loads(proc.text)
         print(json_res['IsActivePricing'])
 
@@ -200,7 +208,7 @@ def check_pricing_status():
         METRIC_3.info({'version': str(json_res['MaxSysSchemaVersion']), 'status': str(json_res['IsActivePricing'])})
     except Exception as e:
         print(e)
-        METRIC_3.info({'version': 'Not Found', 'status': str(False)})
+        METRIC_3.info({'reason': reason, 'status': str(False)})
 
     return make_wsgi_app()
 

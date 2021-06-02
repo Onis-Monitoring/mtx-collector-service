@@ -1,7 +1,8 @@
 from prometheus_client import Summary, Info, Gauge
 
 # Metrics Definition
-METRIC_1 = Info('mef_file_backlog_status', 'Description of mef backlog')
+# METRIC_1 = Info('mef_file_backlog_status', 'Description of mef backlog')
+METRIC_1 = [Info('mef_file_backlog_status_1', 'Description of mef backlog'), Info('mef_file_backlog_status_2', 'Description of mef backlog')]
 METRIC_2 = [Info('mef_gap_file1', 'Description of mef gaps sub1'), Info('mef_gap_file2', 'Description of mef gaps sub2'), Info('mef_gap_file3', 'Description of mef gaps sub3')]
 METRIC_3 = Info('pricing_status', 'Description of pricing')
 METRIC_4 = Info('event_repository_loader', 'Event Repository Loader Ranges')
