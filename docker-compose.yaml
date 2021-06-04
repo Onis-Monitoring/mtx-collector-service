@@ -7,7 +7,7 @@ services:
         networks:
             - cluster
     flask:
-        image: "flask-test:2.7"
+        image: "flask-dev:2.7"
         ports:
             - "5000:5000"
         networks:

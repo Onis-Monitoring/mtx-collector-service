@@ -127,7 +127,7 @@ def getActivePublishingBlade():
             engine += 1
         subdomain += 1
 
-def getPublishing():
+def getMefBackLog():
     subdomain = 1
     PATH = ''
     while subdomain <= SUBDOMAINS:
@@ -145,12 +145,16 @@ def getPublishing():
                     print('PATH {}'.format(PATH))
                     try:
                         files = os.listdir(PATH)
+                        backlog = False
                         for file in files:
                             if '.xml.gz' in file:
-                                path = '{PATH}/{file}'
+                                path = '{}{}'.format(PATH, file)
                                 stat = os.stat(path)
-                                date1 = True if datetime.now().timestamp() - stat.st_mtime > 60 else False
-                                print('Backlog status {}'.format(date1))
+                                backlog = True if mktime(datetime.now().timetuple()) - stat.st_mtime > 120 else False
+                                print('Backlog status {}'.format(backlog))
+                                if backlog:
+                                    break
+                        METRIC_1[replica].info({'backlog_status': str(backlog)})  
                     except Exception as e:
                         print(e)
                     replica += 1
@@ -173,7 +177,7 @@ def testPath():
     #getActivePublishingBlade()
 
     #31-05-2021
-    getPublishing()
+    # getMefBackLog()
     
 
     return make_wsgi_app()
@@ -186,17 +190,20 @@ def index():
 @app.route("/api/checkPricing")
 @cross_origin()
 def check_pricing_status():
+    reason = 'Not Found'
     try:
         proc= requests.get(PRICING_STATUS, verify=False, timeout=5)
+        if proc.reason:
+            reason = proc.reason
         json_res = json.loads(proc.text)
         print(json_res['IsActivePricing'])
 
-        x = 1 if json_res['IsActivePricing'] == True else 0
+        # x = 1 if json_res['IsActivePricing'] == True else 0
 
         METRIC_3.info({'version': str(json_res['MaxSysSchemaVersion']), 'status': str(json_res['IsActivePricing'])})
     except Exception as e:
         print(e)
-        METRIC_3.info({'version': 'Not Found', 'status': str(False)})
+        METRIC_3.info({'reason': reason, 'status': str(False)})
 
     return make_wsgi_app()
 
@@ -249,18 +256,7 @@ def check_mef_gaps():
 @cross_origin()
 def check_mef_backlog():
     try:
-        if platform.system() == 'Windows':
-            date1 = False if datetime.now().timestamp() - os.path.getctime(PATH_TO_MEF_BACKLOG) > 10 else True
-            print('date1 : {}'.format(date1))
-        else:
-            stat = os.stat(PATH_TO_MEF_BACKLOG)
-            try:
-                date1 = False if datetime.now().timestamp() - stat.st_birthtime > 160 else True
-                print('time: {}'.format(date1))
-            except AttributeError:
-                date1 = False if datetime.now().timestamp() - stat.st_mtime > 160 else True
-                print('time: {}'.format(date1))
-        METRIC_1.info({'path': PATH_TO_MEF_BACKLOG, 'status': str(date1)})
+        getMefBackLog()
     except Exception as e:
         print(e)
     
@@ -280,7 +276,7 @@ def check_event_loader():
             dictMetric['subdomain'] = str(line)
         if 'GTC ranges are missing' in line:
             missing_ranges = True
-        if '- ' in line & missing_ranges:
+        if ('- ' in line) & missing_ranges:
             send_alert = True
             dictMetric['range_{}'.format(c)] = line
             c += 1
@@ -291,36 +287,5 @@ def check_event_loader():
         METRIC_4.info({'range_1': ''})
     return make_wsgi_app()
 
-class MEFFileBacklogThread(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.board = 1
-
-    def run(self):
-        i = Gauge('mef_file_backlog_status', 'Description of pricing', ['method', 'path'])
-        while True:
-            if platform.system() == 'Windows':
-                date1 = 1 if datetime.now().timestamp() - os.path.getctime(path_to_file) > 60 else 0
-                i.labels(method='get', path=path_to_file).set(date1)
-            else:
-                stat = os.stat(path_to_file)
-                
-                try:
-                    date1 = 1 if datetime.now().timestamp() - stat.st_birthtime > 60 else 0
-                    i.labels(method='get', path=path_to_file).set(date1)
-                except AttributeError:
-                    # We're probably on Linux. No easy way to get creation dates here,
-                    # so we'll settle for when its content was last modified.
-                    date1 = 1 if datetime.now().timestamp() - stat.st_mtime > 60 else 0
-                    i.labels(method='get', path=path_to_file).set(date1)
-            time.sleep(60)
-    
-    def stop(self):
-        self._stop.set()
-
-# backlogThread = MEFFileBacklogThread()
-
-
 if __name__ == '__main__':
-    # backlogThread.start()
     app.run(debug=True, host='0.0.0.0')
