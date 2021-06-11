@@ -3,7 +3,7 @@
     "info": {
       "description": "sean",
       "version": "1.0.0",
-      "title": "Seans-Python3-Flask-Rest-Boilerplate",
+      "title": "mtx collector service",
       "license": {
         "name": "MIT",
         "url": "https://opensource.org/licenses/MIT"
@@ -16,17 +16,17 @@
     ],
     "tags": [
       {
-        "name": "Book Request ADAP",
-        "description": "Example API for requesting and return book requests"
+        "name": "Api python",
+        "description": "metricas"
       }
     ],
     "paths": {
-      "/request": {
+      "/api/checkPricing": {
         "get": {
           "tags": [
             "Book Request"
           ],
-          "summary": "Returns bookRequests",
+          "summary": "Returns check Pricing",
           "responses": {
             "200": {
               "description": "OK",
@@ -35,154 +35,80 @@
               }
             }
           }
-        },
-        "post": {
-          "tags": [
-            "Book Request"
-          ],
-          "summary": "Create a new book request system",
-          "requestBody": {
-            "description": "Book Request Post Object",
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/bookRequestPostBody"
-                }
-              }
-            }
-          },
-          "produces": [
-            "application/json"
-          ],
-          "responses": {
-            "201": {
-              "description": "OK",
-              "schema": {
-                "$ref": "#/components/schemas/id"
-              }
-            },
-            "400": {
-              "description": "Failed. Bad post data."
-            }
-          }
         }
       },
-      "/request/{id}": {
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "ID of the cat that we want to match",
-            "type": "string"
-          }
-        ],
+
+      "/api/checkMefGaps": {
         "get": {
           "tags": [
             "Book Request"
           ],
-          "summary": "Get book request with given ID",
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "description": "Book Request id",
-              "schema": {
-                "$ref": "#/components/schemas/id"
-              }
-            }
-          ],
+          "summary": "Returns check MefGaps",
+          "description":"
+          identify any GTC gaps in the published MEFs, the file name highlighted with yellow, 
+          potentially the name of the successfully published MEF file(s) could be used for that.
+          One thing to remember is that MEFs could be published by any
+          of the Publishing Pods of either of the Engines  
+
+          > mef_1617049179_21727833_21727955.xml.gz
+          ",
           "responses": {
             "200": {
               "description": "OK",
               "schema": {
-                "$ref": "#/components/schemas/bookRequest"
+                "$ref": "#/components/schemas/bookRequests"
               }
-            },
-            "400": {
-              "description": "Failed. Misunderstood Request."
-            },
-            "404": {
-              "description": "Failed. Book request not found."
             }
           }
-        },
-        "put": {
-          "summary": "edit a book request by ID",
+        }
+      },
+
+
+      "/api/checkMefBacklog": {
+        "get": {
           "tags": [
             "Book Request"
           ],
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "description": "Book Request id",
-              "schema": {
-                "$ref": "#/components/schemas/id"
-              }
-            }
-          ],
-          "requestBody": {
-            "description": "Book Request Object",
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/bookRequest"
-                }
-              }
-            }
-          },
-          "produces": [
-            "application/json"
-          ],
+          "summary": "Returns check MefBacklog",
+          "description":"#### The MEF publishing publishes the MEFs from a “temporary” directory under ‘/fast-shared’, e.g.:  
+          
+          /fast-shared/local_1_2_1/staging/mef_temp/  
+          
+          #### If the MEF publishing works normally, there should not be a big backlog of MEFs in these directories, 
+          instead of the closed MEF file(s) (i.e. without the ‘in_progress’ in the file name) 
+          should be published and cleared from this directory frequently, 
+          looking at the MEF publishing log file in every 30 seconds. 
+          From the production environment we can see following:
+          
+          ",
           "responses": {
             "200": {
               "description": "OK",
               "schema": {
-                "$ref": "#/components/schemas/bookRequest"
+                "$ref": "#/components/schemas/bookRequests"
               }
-            },
-            "400": {
-              "description": "Failed. Bad post data."
             }
           }
-        },
-        "delete": {
-          "summary": "Delete Book Request by ID",
+        }
+      },
+
+      "/api/checkEventLoadRepo": {
+        "get": {
           "tags": [
             "Book Request"
           ],
-          "parameters": [
-            {
-              "in": "path",
-              "name": "id",
-              "required": true,
-              "description": "Book Request Id",
-              "schema": {
-                "$ref": "#/components/schemas/id"
-              }
-            }
-          ],
+          "summary": "Returns check Event LoadRepo",
           "responses": {
-            "204": {
+            "200": {
               "description": "OK",
               "schema": {
-                "$ref": "#/components/schemas/id"
+                "$ref": "#/components/schemas/bookRequests"
               }
-            },
-            "400": {
-              "description": "Failed. Misunderstood Request."
-            },
-            "404": {
-              "description": "Failed. Book Request not found."
             }
           }
         }
       }
+
     },
     "components": {
       "schemas": {
