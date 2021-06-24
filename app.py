@@ -19,7 +19,10 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app, Summary, Info, Gauge
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
 from datetime import date
-from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, PRICING_STATUS, MEF_LOG_FILE, PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, ENGINES, REPLICAS, EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE
+from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, PRICING_STATUS, MEF_LOG_FILE,\
+PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, ENGINES, REPLICAS,\
+EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME
+
 from time import mktime
 from snmp_service import get_engine_status
 
@@ -257,19 +260,24 @@ def check_last_checkpointijng():
     subdomain = 1
     PATH = ''
     while subdomain <= SUBDOMAINS:
-        engine = ENGINE
-        send_alert = False
-        PATH = PATH_CHECKPOINT.format(subdomain, engine)
-        files = os.listdir(PATH)
-        result = filter(lambda x: 'ckpt' in x, files)
-        sort_result = sorted(result)
-        full_path = '{}{}'.format(PATH, sort_result[-1])
-        stat = os.stat(full_path)
-        valid_time = mktime(datetime.now().timetuple()) - stat.st_mtime
-        send_alert = valid_time > 5400
-        print(send_alert)
-        METRIC_5[subdomain-1].info({'valid': send_alert,'subdomain':subdomain, 'engine':engine })
-        subdomain += 1
+        try:
+            engine = ENGINE
+            send_alert = False
+            PATH = PATH_CHECKPOINT.format(subdomain, engine)
+            files = os.listdir(PATH)
+            result = filter(lambda x: 'ckpt' in x, files)
+            sort_result = sorted(result)
+            full_path = '{}{}'.format(PATH, sort_result[-1])
+            stat = os.stat(full_path)
+            valid_time = mktime(datetime.now().timetuple()) - stat.st_mtime
+            send_alert = valid_time > CHECKPOINT_TIME
+            print(send_alert)
+            METRIC_5[subdomain-1].info({'valid': str(send_alert),'subdomain':str(subdomain), 'engine':str(engine) })
+            subdomain += 1
+        except Exception as e:
+            print(e)
 
+    return make_wsgi_app()
+   
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
