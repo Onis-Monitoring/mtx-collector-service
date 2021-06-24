@@ -5,6 +5,7 @@ METRIC_1 = [Info('mef_file_backlog_status_1', 'Description of mef backlog'), Inf
 METRIC_2 = [Info('mef_gap_file1', 'Description of mef gaps sub1'), Info('mef_gap_file2', 'Description of mef gaps sub2'), Info('mef_gap_file3', 'Description of mef gaps sub3')]
 METRIC_3 = Info('pricing_status', 'Description of pricing')
 METRIC_4 = Info('event_repository_loader', 'Event Repository Loader Ranges')
+METRIC_5 = [Info('checkpointing_status_1','checkpointing generation date'),Info('checkpointing_status_2','checkpointing generation date'),Info('checkpointing_status_3','checkpointing generation date')]
 
 PRICING_STATUS = 'https://matrixx-rsgw.mx.att.com/rsgateway/data/json/pricing/status'
 
@@ -27,6 +28,7 @@ SNMP_ADRESS = 'publ-cls-s{}e{}:4700'
 SUBDOMAINS = 1
 ENGINES = 2
 REPLICAS = 2
+ENGINE = 1
 
 PRICING_STATUS_JSON_MOCK = {
     "$": "MtxResponsePricingStatus",
