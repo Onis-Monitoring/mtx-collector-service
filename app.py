@@ -62,7 +62,7 @@ def process_mef_file_log(file, subdomain):
                 if counter == 0:
                     counter = formatted[3]
                 elif (int(counter) + 1) == int(formatted[2]):
-                    print('correct in files: {} and {}'.format(old_line, line.strip()))
+                    # print('correct in files: {} and {}'.format(old_line, line.strip()))
                     counter = formatted[3]
                 else:
                     send_alert = True
@@ -212,42 +212,6 @@ def check_pricing_status():
 def check_mef_gaps():
     print("Executing checkMefGaps method")
     logger.debug("Executing checkMefGaps method logger")
-    # try:
-    #     with open(MEF_LOG_FILE,'r') as fp:
-    #         line = fp.readline()
-    #         counter = 0
-    #         old_line = 'something'
-    #         send_alert = False
-    #         alerted_files = []
-    #         while line:
-    #             if '.xml.gz' in line.strip():
-    #                 formatted = line.strip().replace('.', '_').split('_')
-    #                 if counter == 0:
-    #                     counter = formatted[3]
-    #                 elif (int(counter) + 1) == int(formatted[2]):
-    #                     print('correct in files: {} and {}'.format(old_line, line.strip()))
-    #                     counter = formatted[3]
-    #                 else:
-    #                     send_alert = True
-    #                     alerted_files.append(line.strip())
-    #                     print('There is a gap between: {} and {}'.format(old_line, line.strip()))
-    #                     counter = formatted[3]
-    #                 old_line = line.strip()
-    #             line = fp.readline()
-    #         if send_alert:
-    #             print("Sending to prometheus")
-    #             dictMetric = {}
-    #             c = 1
-    #             for mef in alerted_files:
-    #                 dictMetric['file_{}'.format(c)] = mef
-    #                 c += 1
-    #             METRIC_2.info(dictMetric)
-    #         else:
-    #             METRIC_2.info({'file_1': ''})
-            
-    # except Exception as e:
-    #     logger.error(e)
-    #     print(e)
     getActivePublishingBlade()
 
     return make_wsgi_app()
