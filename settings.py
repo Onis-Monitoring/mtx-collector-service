@@ -16,6 +16,7 @@ MEF_LOG_FILE_NAME = 'publish_mefs.log'
 # PATH_TO_MEF_BACKLOG = r'/etc/prometheus/publish_mefs.log'
 # PATH_TO_MEF_BACKLOG = r'./publish_'
 PATH_TO_MEF_BACKLOG = r'/mnt/fast-shared-storage-s{0}e{1}/local_{1}_2_{2}/staging/mef_temp'
+PATH_CHECKPOINT = r'/mnt/shared-storage-{0}e{1}/checkpoints/'
 
 ERL_USER = "MtxAdmin"
 ERL_HOST = "--host=mongo-0.mongo.mongodb.svc.cluster.local"

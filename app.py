@@ -19,7 +19,7 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app, Summary, Info, Gauge
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
 from datetime import date
-from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4, PRICING_STATUS, MEF_LOG_FILE, PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, ENGINES, REPLICAS, EVENT_REPOSITORY_LOADER
+from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4, PRICING_STATUS, MEF_LOG_FILE, PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, ENGINES, REPLICAS, EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT
 from time import mktime
 from snmp_service import get_engine_status
 
@@ -250,6 +250,26 @@ def check_event_loader():
     else:
         METRIC_4.info({'range_1': ''})
     return make_wsgi_app()
+
+@app.route("/api/checkLastCheckpointing")
+@cross_origin()
+def check_last_checkpointijng():
+    subdomain = 1
+    PATH = ''
+    while subdomain <= SUBDOMAINS:
+        engine = 1
+        while engine <= ENGINES:
+            PATH = PATH_CHECKPOINT.format(subdomain, engine)
+            files = os.listdir(PATH)
+            result = filter(lambda x: 'ckpt' in x, files)
+            sort_result = sorted(result)
+            full_path = '{}{}'.format(PATH, sort_result[-1])
+            stat = os.stat(full_path)
+            valid_time = mktime(datetime.now().timetuple()) - stat.st_mtime
+            x = valid_time > 5400
+            print(x)
+            engine += 1
+        subdomain += 1
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
