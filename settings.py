@@ -6,6 +6,7 @@ METRIC_2 = [Info('mef_gap_file1', 'Description of mef gaps sub1'), Info('mef_gap
 METRIC_3 = Info('pricing_status', 'Description of pricing')
 METRIC_4 = Info('event_repository_loader', 'Event Repository Loader Ranges')
 METRIC_5 = [Info('checkpointing_status_1','checkpointing generation date'),Info('checkpointing_status_2','checkpointing generation date'),Info('checkpointing_status_3','checkpointing generation date')]
+METRIC_6 = [Gauge('checkpointing_errors_1','validate checkpoint errors'),Gauge('checkpointing_errors_2','validate checkpoint errors'),Gauge('checkpointing_errors_3','validate checkpoint errors')]
 
 PRICING_STATUS = 'https://matrixx-rsgw.mx.att.com/rsgateway/data/json/pricing/status'
 
@@ -20,12 +21,13 @@ PATH_TO_MEF_BACKLOG = r'/mnt/fast-shared-storage-s{0}e{1}/local_{1}_2_{2}/stagin
 PATH_CHECKPOINT = r'/mnt/shared-storage-s{0}e{1}/checkpoints/'
 
 ERL_USER = "MtxAdmin"
-ERL_HOST = "--host=mongo-0.mongo.mongodb.svc.cluster.local"
+ERL_HOST = "--host=10.237.3.143"
+# ERL_HOST = "--host=mongo-0.mongo.mongodb.svc.cluster.local"
 EVENT_REPOSITORY_LOADER = ["print_event_repository_loader_trace.py", "-g", "-u", ERL_USER, ERL_HOST]
 
 SNMP_ADRESS = 'publ-cls-s{}e{}:4700'
 
-SUBDOMAINS = 1
+SUBDOMAINS = [1,2,3]
 ENGINES = 2
 REPLICAS = 2
 ENGINE = 1
