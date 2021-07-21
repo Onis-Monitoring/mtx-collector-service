@@ -5,15 +5,16 @@ import json
 import os
 import requests
 import logging
+import glob
 
 from datetime import datetime
 from flask import Flask
 from flask_cors import CORS, cross_origin
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
-from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, METRIC_6, PRICING_STATUS, MEF_LOG_FILE,\
+from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, METRIC_6, METRIC_7, PRICING_STATUS, MEF_LOG_FILE,\
 PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, REPLICAS,\
-EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME
+EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME, ENGINES
 from time import mktime
 from snmp_service import get_engine_status
 
@@ -74,75 +75,76 @@ def getActivePublishingBlade():
     # while subdomain <= SUBDOMAINS:
     for subdomain in SUBDOMAINS:
         engine = ENGINE
-        # while engine <= ENGINES:
-        replica = 0
-        tmp_time = 0.0
-        tmp_path = ''
-        snmp_add = SNMP_ADRESS.format(subdomain, engine)
-        isActive = get_engine_status(engine, snmp_add)
-        print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
-        #Encontrar engine activo
-        if isActive['id'] == 8:
-            while replica <= (REPLICAS - 1):
-                PATH = MEF_LOG_FILE_PATH.format(subdomain, engine, replica, MEF_LOG_FILE_NAME)
-                print('PATH {}'.format(PATH))
-                try:
-                    stat = os.stat(PATH)
-                    # print('STAT {}'.format(stat))
+        while engine <= ENGINES:
+            replica = 0
+            tmp_time = 0.0
+            tmp_path = ''
+            snmp_add = SNMP_ADRESS.format(subdomain, engine)
+            isActive = get_engine_status(engine, snmp_add)
+            print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
+            #Encontrar engine activo
+            if isActive['id'] == 8:
+                while replica <= (REPLICAS - 1):
+                    PATH = MEF_LOG_FILE_PATH.format(subdomain, engine, replica, MEF_LOG_FILE_NAME)
+                    print('PATH {}'.format(PATH))
                     try:
-                        validTime = mktime(datetime.now().timetuple()) - stat.st_mtime
-                        if (tmp_time != 0.0) & (tmp_time < validTime):
-                            print('Found mef_file in: {}'.format(tmp_path))
-                            process_mef_file_log(tmp_path, subdomain)
-                        elif (tmp_time != 0.0) | (REPLICAS == 1):
-                            print('Found mef_file in: {}'.format(PATH))
-                            process_mef_file_log(PATH, subdomain)
+                        stat = os.stat(PATH)
+                        # print('STAT {}'.format(stat))
+                        try:
+                            validTime = mktime(datetime.now().timetuple()) - stat.st_mtime
+                            if (tmp_time != 0.0) & (tmp_time < validTime):
+                                print('Found mef_file in: {}'.format(tmp_path))
+                                process_mef_file_log(tmp_path, subdomain)
+                            elif (tmp_time != 0.0) | (REPLICAS == 1):
+                                print('Found mef_file in: {}'.format(PATH))
+                                process_mef_file_log(PATH, subdomain)
 
-                        # if validTime <= 60*60*24:
+                            # if validTime <= 60*60*24:
 
-                        tmp_time = validTime
-                        tmp_path = PATH
-                    except AttributeError:
+                            tmp_time = validTime
+                            tmp_path = PATH
+                        except AttributeError:
+                            print(e)
+                        # return PATH
+                    except Exception as e:
                         print(e)
-                    # return PATH
-                except Exception as e:
-                    print(e)
-                    PATH = ''
-                replica += 1
-        # engine += 1
+                        PATH = ''
+                    replica += 1
+            engine += 1
         # subdomain += 1
 
 def getMefBackLog():
     # subdomain = 1
     PATH = ''
-    # while subdomain <= SUBDOMAINS:
     for subdomain in SUBDOMAINS:
         engine = ENGINE
-        replica = 0
-        snmp_add = SNMP_ADRESS.format(subdomain, engine)
-        isActive = get_engine_status(engine, snmp_add)
-        print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
-        #Encontrar engine activo
-        if isActive['id'] == 8:
-            # print('isActive[] == 8')
-            while replica <= (REPLICAS - 1):
-                PATH = PATH_TO_MEF_BACKLOG.format(subdomain, engine, (replica + 1))
-                print('PATH {}'.format(PATH))
-                try:
-                    files = os.listdir(PATH)
-                    backlog = False
-                    for file in files:
-                        if '.xml.gz' in file:
-                            path = '{}{}'.format(PATH, file)
-                            stat = os.stat(path)
-                            backlog = True if mktime(datetime.now().timetuple()) - stat.st_mtime > 120 else False
-                            print('Backlog status {}'.format(backlog))
-                            if backlog:
-                                break
-                    METRIC_1[replica].info({'backlog_status': str(backlog)})  
-                except Exception as e:
-                    print(e)
-                replica += 1
+        while engine <= ENGINES:
+            replica = 0
+            snmp_add = SNMP_ADRESS.format(subdomain, engine)
+            isActive = get_engine_status(engine, snmp_add)
+            print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
+            #Encontrar engine activo
+            if isActive['id'] == 8:
+                # print('isActive[] == 8')
+                while replica <= (REPLICAS - 1):
+                    PATH = PATH_TO_MEF_BACKLOG.format(subdomain, engine, (replica + 1))
+                    print('PATH {}'.format(PATH))
+                    try:
+                        files = os.listdir(PATH)
+                        backlog = False
+                        for file in files:
+                            if '.xml.gz' in file:
+                                path = '{}{}'.format(PATH, file)
+                                stat = os.stat(path)
+                                backlog = True if mktime(datetime.now().timetuple()) - stat.st_mtime > 120 else False
+                                print('Backlog status {}'.format(backlog))
+                                if backlog:
+                                    break
+                        METRIC_1[replica].info({'backlog_status': str(backlog)})  
+                    except Exception as e:
+                        print(e)
+                    replica += 1
+            engine += 1
 
 @app.route("/testPath")
 @cross_origin()
@@ -228,16 +230,18 @@ def check_last_checkpointijng():
         try:
             engine = ENGINE
             send_alert = False
-            PATH = PATH_CHECKPOINT.format(subdomain, engine)
-            files = os.listdir(PATH)
-            result = filter(lambda x: 'ckpt' in x, files)
-            sort_result = sorted(result)
-            full_path = '{}{}'.format(PATH, sort_result[-1])
-            stat = os.stat(full_path)
-            valid_time = mktime(datetime.now().timetuple()) - stat.st_mtime
-            send_alert = valid_time > CHECKPOINT_TIME
-            print(send_alert)
-            METRIC_5[subdomain-1].info({'valid': str(send_alert),'subdomain':str(subdomain), 'engine':str(engine) })
+            PATH = PATH_CHECKPOINT.format(subdomain)
+            full_path = glob.glob(PATH)
+            if full_path:
+                files = os.listdir(full_path[0])
+                result = filter(lambda x: 'ckpt' in x, files)
+                sort_result = sorted(result)
+                full_path = '{}{}'.format(PATH, sort_result[-1])
+                stat = os.stat(full_path)
+                valid_time = mktime(datetime.now().timetuple()) - stat.st_mtime
+                send_alert = valid_time > CHECKPOINT_TIME
+                print(send_alert)
+                METRIC_5[subdomain-1].info({'valid': str(send_alert),'subdomain':str(subdomain), 'path':str(full_path[0]) })
             # subdomain += 1
         except Exception as e:
             print(e)
@@ -247,12 +251,12 @@ def check_last_checkpointijng():
 @app.route("/api/validateCheckpointErrors")
 @cross_origin()
 def validate_checkpoint_errors():
-    PATH = ''
     for subdomain in SUBDOMAINS:
         try:
-            engine = ENGINE
+            # engine = ENGINE
             errors = 0
-            engine_name = 's{}e{}'.format(subdomain,engine)
+            # engine_name = 's{}e{}'.format(subdomain,engine)
+            engine_name = 's{}e'.format(subdomain)
             proc = subprocess.check_output(["kubectl", "get", "--sort-by=.metadata.creationTimestamp", "pods"])
             lines = [line for line in proc.splitlines() if 'validate' in line and engine_name in line]
             if lines:
@@ -263,11 +267,28 @@ def validate_checkpoint_errors():
                     proc2 = subprocess.check_output(command)
                     if 'Errors=' in proc2:
                         errors = int(proc2.split()[2].split('=')[1])
-            
-            # METRIC_6[subdomain-1].info({'errors': errors,'subdomain':str(subdomain), 'engine':str(engine) })
             METRIC_6[subdomain-1].set(errors)
         except Exception as e:
             print(e)
+
+    return make_wsgi_app()
+
+@app.route("/api/validateMefDestination")
+@cross_origin()
+def validate_mefs_destination():
+    try:
+        proc = subprocess.check_output(["bash", "collect_processing_files.bash"])
+        lines = proc.splitlines()
+        for i, line in enumerate(lines):
+            print(line)
+            # line = '-rwxrwxr-x 1 mtxdepmef mtxdepmef 57 2021-07-03 06:56:48.628752148 -0500 /opt/matrixx/mef/NOD003/PublishProgress.engine_2'
+            time = ' '.join([l for l in line.split(' ') if l != ''][5:7])
+            final = mktime(datetime.now().timetuple()) - mktime(datetime.strptime(time.split('.')[0], "%Y-%m-%d %H:%M:%S").timetuple()) > 120
+            values = [l for l in line.split(' ') if l != ''][-1].split('/')[-2:]
+
+            METRIC_7[i].info({'status': str(final),'node':values[0], 'file':values[1] })
+    except Exception as e:
+        print(e)
 
     return make_wsgi_app()
    
