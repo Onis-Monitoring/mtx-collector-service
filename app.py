@@ -9,14 +9,18 @@ import glob
 
 from datetime import datetime
 from flask import Flask
+from flask import request
 from flask_cors import CORS, cross_origin
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
-from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, METRIC_6, METRIC_7, PRICING_STATUS, MEF_LOG_FILE,\
+from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, METRIC_6, METRIC_7, METRIC_8, PRICING_STATUS, MEF_LOG_FILE,\
 PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, REPLICAS,\
 EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME, ENGINES
 from time import mktime
-from snmp_service import get_engine_status
+
+import socket,time,sys 
+from timeit import default_timer as timer
+#from snmp_service import get_engine_status
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -80,7 +84,8 @@ def getActivePublishingBlade():
             tmp_time = 0.0
             tmp_path = ''
             snmp_add = SNMP_ADRESS.format(subdomain, engine)
-            isActive = get_engine_status(engine, snmp_add)
+            #isActive = get_engine_status(engine, snmp_add)
+            isActive = {"id": 8}
             print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
             #Encontrar engine activo
             if isActive['id'] == 8:
@@ -121,7 +126,8 @@ def getMefBackLog():
         while engine <= ENGINES:
             replica = 0
             snmp_add = SNMP_ADRESS.format(subdomain, engine)
-            isActive = get_engine_status(engine, snmp_add)
+            #isActive = get_engine_status(engine, snmp_add)
+            isActive = {"id": 8}
             print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
             #Encontrar engine activo
             if isActive['id'] == 8:
@@ -155,6 +161,45 @@ def testPath():
 @cross_origin()
 def index():
     return "OK"
+
+@app.route("/api/checkInterSiteLatency", methods=['GET'])
+@cross_origin()
+def checkInterSiteLatency():
+
+    remote_host = request.args.get('remoteHost')
+    remote_port = request.args.get('remotePort')
+    timeout = request.args.get('timeout')
+
+    if timeout is None:
+        max_latency=15
+    else:    
+        max_latency= int(timeout)
+
+    message="get cluster_state 0001-16f5bd2d"
+
+    sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.settimeout(max_latency)
+    sock.sendto(message,(remote_host,int(remote_port)))
+
+    try:
+
+        data,address=sock.recvfrom(4096)
+
+        # If response is received before max latency, set latency as 0 latency; meaning inter connectivity test is OK.
+        METRIC_8.set(0)
+
+    except:
+
+        # If something goes wrong, set latency to max_latency value; meaning inter connectivity test failed.
+        METRIC_8.set(max_latency)
+
+    # If something goes wrong, set latency to max_latency value; meaning inter connectivity test failed.
+    METRIC_8.set(max_latency)
+
+    # Return latency value.
+    return make_wsgi_app() 
+
+    
 
 @app.route("/api/checkPricing")
 @cross_origin()

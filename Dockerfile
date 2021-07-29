@@ -3,7 +3,6 @@ FROM python:2.7-slim
 
 # We copy just the requirements.txt first to leverage Docker cache
 COPY ./requirements.txt /app/requirements.txt
-COPY ./print_event_repository_loader_trace.py /app/print_event_repository_loader_trace.py
 
 WORKDIR /app
 
