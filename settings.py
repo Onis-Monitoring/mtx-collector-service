@@ -8,7 +8,7 @@ METRIC_4 = Info('event_repository_loader', 'Event Repository Loader Ranges')
 METRIC_5 = [Info('checkpointing_status_1','checkpointing generation date'),Info('checkpointing_status_2','checkpointing generation date'),Info('checkpointing_status_3','checkpointing generation date')]
 METRIC_6 = [Gauge('checkpointing_errors_1','validate checkpoint errors'),Gauge('checkpointing_errors_2','validate checkpoint errors'),Gauge('checkpointing_errors_3','validate checkpoint errors')]
 METRIC_7 = [Info('destination_status_1','mef destination status'),Info('destination_status_2','mef destination status'),Info('destination_status_3','mef destination status'), Info('destination_status_4','mef destination status'), Info('destination_status_5','mef destination status'), Info('destination_status_6','mef destination status')]
-METRIC_8 = Gauge('inter_site_latency', 'Inter site connectivity latency measure')
+METRIC_9 = Gauge('inter_site_latency', 'Inter site connectivity latency measure')
 
 PRICING_STATUS = 'https://matrixx-rsgw.mx.att.com/rsgateway/data/json/pricing/status'
 

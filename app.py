@@ -13,7 +13,7 @@ from flask import request
 from flask_cors import CORS, cross_origin
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
-from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, METRIC_6, METRIC_7, METRIC_8, PRICING_STATUS, MEF_LOG_FILE,\
+from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, METRIC_6, METRIC_7, METRIC_9, PRICING_STATUS, MEF_LOG_FILE,\
 PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, REPLICAS,\
 EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME, ENGINES
 from time import mktime
@@ -175,26 +175,27 @@ def checkInterSiteLatency():
     else:    
         max_latency= int(timeout)
 
-    message="get cluster_state 0001-16f5bd2d"
+    message="get cluster_state #0001-16f5bd2d"
 
     sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.settimeout(max_latency)
     sock.sendto(message,(remote_host,int(remote_port)))
 
+    start=timer()
+
     try:
 
         data,address=sock.recvfrom(4096)
 
-        # If response is received before max latency, set latency as 0 latency; meaning inter connectivity test is OK.
-        METRIC_8.set(0)
+        elapsed=(timer()-start)*1000
+
+        # If response is received before timeout, return the latency value
+        METRIC_9.set(elapsed)
 
     except:
 
         # If something goes wrong, set latency to max_latency value; meaning inter connectivity test failed.
-        METRIC_8.set(max_latency)
-
-    # If something goes wrong, set latency to max_latency value; meaning inter connectivity test failed.
-    METRIC_8.set(max_latency)
+        METRIC_9.set(max_latency*1000)
 
     # Return latency value.
     return make_wsgi_app() 
