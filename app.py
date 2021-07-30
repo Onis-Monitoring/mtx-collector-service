@@ -84,8 +84,6 @@ def getActivePublishingBlade():
             tmp_time = 0.0
             tmp_path = ''
             snmp_add = SNMP_ADRESS.format(subdomain, engine)
-            #isActive = get_engine_status(engine, snmp_add)
-            isActive = {"id": 8}
             print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
             #Encontrar engine activo
             if isActive['id'] == 8:
@@ -126,8 +124,6 @@ def getMefBackLog():
         while engine <= ENGINES:
             replica = 0
             snmp_add = SNMP_ADRESS.format(subdomain, engine)
-            #isActive = get_engine_status(engine, snmp_add)
-            isActive = {"id": 8}
             print('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
             #Encontrar engine activo
             if isActive['id'] == 8:
@@ -274,20 +270,22 @@ def check_last_checkpointijng():
     # while subdomain <= SUBDOMAINS:
     for subdomain in SUBDOMAINS:
         try:
-            engine = ENGINE
             send_alert = False
             PATH = PATH_CHECKPOINT.format(subdomain)
             full_path = glob.glob(PATH)
             if full_path:
                 files = os.listdir(full_path[0])
                 result = filter(lambda x: 'ckpt' in x, files)
-                sort_result = sorted(result)
-                full_path = '{}{}'.format(PATH, sort_result[-1])
-                stat = os.stat(full_path)
-                valid_time = mktime(datetime.now().timetuple()) - stat.st_mtime
-                send_alert = valid_time > CHECKPOINT_TIME
-                print(send_alert)
-                METRIC_5[subdomain-1].info({'valid': str(send_alert),'subdomain':str(subdomain), 'path':str(full_path[0]) })
+                if result:
+                    sort_result = sorted(result)
+                    full_path = '{}{}'.format(full_path[0], sort_result[-1])
+                    stat = os.stat(full_path)
+                    valid_time = mktime(datetime.now().timetuple()) - stat.st_mtime
+                    send_alert = valid_time > CHECKPOINT_TIME
+                    print(send_alert)
+                    METRIC_5[subdomain-1].info({'valid': str(send_alert),'subdomain':str(subdomain), 'path':str(full_path[0]) })
+                else:
+                    METRIC_5[subdomain-1].info({'valid': str(True),'subdomain':str(subdomain), 'path':'Not found' })
             # subdomain += 1
         except Exception as e:
             print(e)
@@ -301,6 +299,7 @@ def validate_checkpoint_errors():
         try:
             # engine = ENGINE
             errors = 0
+            warnings = 0
             # engine_name = 's{}e{}'.format(subdomain,engine)
             engine_name = 's{}e'.format(subdomain)
             proc = subprocess.check_output(["kubectl", "get", "--sort-by=.metadata.creationTimestamp", "pods"])
@@ -313,7 +312,10 @@ def validate_checkpoint_errors():
                     proc2 = subprocess.check_output(command)
                     if 'Errors=' in proc2:
                         errors = int(proc2.split()[2].split('=')[1])
+                    if 'Warnings=' in proc2:
+                        warnings = int(proc2.split()[3].split('=')[1])
             METRIC_6[subdomain-1].set(errors)
+            METRIC_8[subdomain-1].set(warnings)
         except Exception as e:
             print(e)
 
