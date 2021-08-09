@@ -10,9 +10,11 @@ METRIC_6 = [Gauge('checkpointing_errors_1','validate checkpoint errors'),Gauge('
 METRIC_7 = [Info('destination_status_1','mef destination status'),Info('destination_status_2','mef destination status'),Info('destination_status_3','mef destination status'), Info('destination_status_4','mef destination status'), Info('destination_status_5','mef destination status'), Info('destination_status_6','mef destination status')]
 METRIC_8 = [Gauge('checkpointing_warnings_1','validate checkpoint warning'),Gauge('checkpointing_warnings_2','validate checkpoint warnings'),Gauge('checkpointing_warnings_3','validate checkpoint warnings')]
 METRIC_9 = Gauge('inter_site_latency', 'Inter site connectivity latency measure')
+METRIC_10 = [Gauge('mefs_1','number of mefs in sftp'),Gauge('mefs_2','number of mefs in sftp'),Gauge('mefs_3','number of mefs in sftp')]
 
 PRICING_STATUS = 'http://rsgateway-ag1:8080/rsgateway/data/json/pricing/status'
 
+LOG_LEVEL = 'DEBUG'
 # MEF_LOG_FILE = r'D:\Trabajo\Onis\Monitoring\Monitoring_v2\grafana-python-datasource-master\grafana-python-datasource-master\flask\publish_mefs.log'
 MEF_LOG_FILE = r'/etc/prometheus/publish_mefs.log'
 MEF_LOG_FILE_PATH = r'/mnt/shared-logging-storage-s{0}e{1}/publ-s{0}e{1}-{2}/{3}'
