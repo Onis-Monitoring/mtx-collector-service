@@ -2,3 +2,4 @@ Flask==0.10.1
 flask_cors==3.0.10
 prometheus_client==v0.10.1
 requests
+gunicorn==19.10.0

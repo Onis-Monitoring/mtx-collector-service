@@ -7,9 +7,15 @@ METRIC_3 = Info('pricing_status', 'Description of pricing')
 METRIC_4 = Info('event_repository_loader', 'Event Repository Loader Ranges')
 METRIC_5 = [Info('checkpointing_status_1','checkpointing generation date'),Info('checkpointing_status_2','checkpointing generation date'),Info('checkpointing_status_3','checkpointing generation date')]
 METRIC_6 = [Gauge('checkpointing_errors_1','validate checkpoint errors'),Gauge('checkpointing_errors_2','validate checkpoint errors'),Gauge('checkpointing_errors_3','validate checkpoint errors')]
+METRIC_7 = [Info('destination_status_1','mef destination status'),Info('destination_status_2','mef destination status'),Info('destination_status_3','mef destination status'), Info('destination_status_4','mef destination status'), Info('destination_status_5','mef destination status'), Info('destination_status_6','mef destination status')]
+METRIC_8 = [Gauge('checkpointing_warnings_1','validate checkpoint warning'),Gauge('checkpointing_warnings_2','validate checkpoint warnings'),Gauge('checkpointing_warnings_3','validate checkpoint warnings')]
+METRIC_9 = Gauge('inter_site_latency', 'Inter site connectivity latency measure')
+METRIC_10 = [Gauge('mefs_1','number of mefs in sftp'),Gauge('mefs_2','number of mefs in sftp'),Gauge('mefs_3','number of mefs in sftp')]
+METRIC_11 = Info('inter_site_trace_path', 'Inter site connectivity trace path')
 
-PRICING_STATUS = 'https://matrixx-rsgw.mx.att.com/rsgateway/data/json/pricing/status'
+PRICING_STATUS = 'http://rsgateway-ag1:8080/rsgateway/data/json/pricing/status'
 
+LOG_LEVEL = 'DEBUG'
 # MEF_LOG_FILE = r'D:\Trabajo\Onis\Monitoring\Monitoring_v2\grafana-python-datasource-master\grafana-python-datasource-master\flask\publish_mefs.log'
 MEF_LOG_FILE = r'/etc/prometheus/publish_mefs.log'
 MEF_LOG_FILE_PATH = r'/mnt/shared-logging-storage-s{0}e{1}/publ-s{0}e{1}-{2}/{3}'
@@ -18,7 +24,7 @@ MEF_LOG_FILE_NAME = 'publish_mefs.log'
 # PATH_TO_MEF_BACKLOG = r'/etc/prometheus/publish_mefs.log'
 # PATH_TO_MEF_BACKLOG = r'./publish_'
 PATH_TO_MEF_BACKLOG = r'/mnt/fast-shared-storage-s{0}e{1}/local_{1}_2_{2}/staging/mef_temp'
-PATH_CHECKPOINT = r'/mnt/shared-storage-s{0}e{1}/checkpoints/'
+PATH_CHECKPOINT = r'/mnt/shared-storage-s{0}e*/checkpoints/'
 
 ERL_USER = "MtxAdmin"
 ERL_HOST = "--host=10.237.3.143"

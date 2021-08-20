@@ -1,6 +1,9 @@
 from easysnmp import snmp_get, EasySNMPError 
+from logger import logger
 import logging
- 
+
+
+
 OID = '.1.3.6.1.4.1.35838.1.1.1.1.2.5.1.3.%d.1'
 ENGINE_STATUSES = {
     '0': {'name': 'Unknown', 'id': 0},
@@ -22,7 +25,7 @@ ENGINE_STATUSES = {
 UNKNOWN_ENGINE_STATUS = ENGINE_STATUSES['0']
 ACTIVE_ENGINE_STATUS = ENGINE_STATUSES['8']
  
-logger = logging.getLogger(__name__)
+logger = logger(__name__, logging.DEBUG)
  
 def get_engine_status(engine_id, snmp_address, cluster_id = 1):
  
@@ -36,11 +39,11 @@ def get_engine_status(engine_id, snmp_address, cluster_id = 1):
         # Look up the Engine Status
         engine_status = ENGINE_STATUSES[str(var.value)]
         if not engine_status:
-            logger.warning("Unable to lookup Engine Status using {}. Reverting to status Unknown".format(var.value))
+            logger.warn("Unable to lookup Engine Status using {}. Reverting to status Unknown".format(var.value))
             engine_status = UNKNOWN_ENGINE_STATUS
  
     except Exception as exception:
-        logger.warning("Could not determine the Status of Engine {}: {}".format(engine_id, exception))
+        logger.warn("Could not determine the Status of Engine {}: {}".format(engine_id, exception))
         engine_status = UNKNOWN_ENGINE_STATUS
  
     logger.info("The status of Engine {} is {}".format(engine_id, engine_status['name']))
