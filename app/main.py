@@ -19,13 +19,14 @@ from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, METRIC_6, 
 METRIC_10, METRIC_11, PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, REPLICAS,\
 EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME, ENGINES
 from time import mktime
-from logger import logger
+from logger import logger, logger_intersite
 import socket,time,sys 
 from timeit import default_timer as timer
 from snmp_service import get_engine_status
 
 # logger = logger()
 logger = logger(__name__, logging.DEBUG)
+logger_intersite = logger_intersite('intersite', logging.DEBUG)
 
 def create_app():
     __author__ = 'Edgar Lopez'
@@ -178,7 +179,7 @@ def create_app():
     @app.route("/api/checkInterSiteLatency", methods=['GET'])
     @cross_origin()
     def checkInterSiteLatency():
-        logger.info("Executing checkInterSiteLatency method")
+        logger_intersite.info("Executing checkInterSiteLatency method")
         remote_host = request.args.get('remoteHost')
         remote_port = request.args.get('remotePort')
         timeout = request.args.get('timeout')
@@ -202,10 +203,10 @@ def create_app():
             # data,address=sock.recvfrom(4096)
             # elapsed=(timer()-start)*1000
             # If response is received before timeout, return the latency value
-            logger.debug(latency)
+            logger_intersite.debug('Latency {}'.format(latency))
             METRIC_9.set(latency)
         except Exception as e:
-            logger.error(e)
+            logger_intersite.error(e)
             # If something goes wrong, set latency to max_latency value; meaning inter connectivity test failed.
             METRIC_9.set(max_latency*1000)
 
@@ -387,15 +388,15 @@ def create_app():
     @app.route("/api/validateTracePath")
     @cross_origin()
     def validate_trace_path():
-        logger.debug("Executing Trace PathMethod")
+        logger_intersite.debug("Executing Trace PathMethod")
         remote_host = request.args.get('remoteHost')
         no_replay_count = 0
         try:
             start = datetime.now()
             proc = subprocess.check_output(["tracepath", "-m", "15", remote_host])
-            logger.debug('tracepath time: \r\n{}'.format(datetime.now() - start))
+            logger_intersite.debug('tracepath time: \r\n{}'.format(datetime.now() - start))
             dict = {}
-            logger.debug('tracepath: \r\n{}'.format(proc))
+            logger_intersite.info('tracepath: \r\n{}'.format(proc))
             # proc = subprocess.check_output(["cat", '../assets/tracepath.out'])
             lines = [line for line in proc.splitlines()]
             for line in lines:
@@ -412,9 +413,9 @@ def create_app():
                 
             # logger.info(dict)
 
-            METRIC_11.info(dict)
+            # METRIC_11.info(dict) # commented until fix labels
         except Exception as e:
-            logger.error(e)
+            logger_intersite.error(e)
 
         return make_wsgi_app()
     
