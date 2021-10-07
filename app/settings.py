@@ -12,6 +12,9 @@ METRIC_8 = [Gauge('checkpointing_warnings_1','validate checkpoint warning'),Gaug
 METRIC_9 = Gauge('inter_site_latency', 'Inter site connectivity latency measure')
 METRIC_10 = [Gauge('mefs_1','number of mefs in sftp'),Gauge('mefs_2','number of mefs in sftp'),Gauge('mefs_3','number of mefs in sftp')]
 METRIC_11 = Info('inter_site_trace_path', 'Inter site connectivity trace path')
+METRIC_12 = Info('mtx_valid_snapshot', 'Daily snapshot check')
+METRIC_13 = Gauge('mtx_snapshot_time', 'Daily snapshot time')
+# METRIC_14 = [Gauge('mtx_volume_space_1','volume space used in percentage'),Gauge('mtx_volume_space_2','volume space used in percentage'),Gauge('mtx_volume_space_3','volume space used in percentage')]
 
 PRICING_STATUS = 'http://rsgateway-ag1:8080/rsgateway/data/json/pricing/status'
 
@@ -38,6 +41,7 @@ ENGINES = 2
 REPLICAS = 2
 ENGINE = 1
 CHECKPOINT_TIME=5400
+SNAPSHOT_TIME=87000 # 1d 10 min
 
 PRICING_STATUS_JSON_MOCK = {
     "$": "MtxResponsePricingStatus",

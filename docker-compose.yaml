@@ -7,7 +7,7 @@ services:
         networks:
             - cluster
     flask:
-        image: "flask-dev:2.7"
+        image: "mtx_collector:2.1"
         ports:
             - "5000:5000"
         networks:

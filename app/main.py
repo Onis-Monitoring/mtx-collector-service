@@ -16,17 +16,24 @@ from flask_cors import CORS, cross_origin
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
 from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, METRIC_6, METRIC_7, METRIC_8, METRIC_9, PRICING_STATUS, MEF_LOG_FILE,\
-METRIC_10, METRIC_11, PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, REPLICAS,\
-EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME, ENGINES
+METRIC_10, METRIC_11, METRIC_12, METRIC_13, PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, REPLICAS,\
+EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME, ENGINES, SNAPSHOT_TIME
 from time import mktime
 from logger import logger, logger_intersite
 import socket,time,sys 
 from timeit import default_timer as timer
-from snmp_service import get_engine_status
+# from snmp_service import get_engine_status
 
 # logger = logger()
 logger = logger(__name__, logging.DEBUG)
 logger_intersite = logger_intersite('intersite', logging.DEBUG)
+
+# def get_engine_status(engine, snmp_add, test=False):
+#     if not test:
+#         from snmp_service import get_engine_status
+#         return get_engine_status(engine, snmp_add)
+
+#     return {'id': 8}
 
 def create_app():
     __author__ = 'Edgar Lopez'
@@ -96,8 +103,8 @@ def create_app():
                 tmp_time = 0.0
                 tmp_path = ''
                 snmp_add = SNMP_ADRESS.format(subdomain, engine)
-                isActive = get_engine_status(engine, snmp_add)
-                # isActive = {'id': 8}
+                # isActive = get_engine_status(engine, snmp_add)
+                isActive = {'id': 8}
                 logger.debug('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
                 #Encontrar engine activo
                 if isActive['id'] == 8:
@@ -139,8 +146,8 @@ def create_app():
             while engine <= ENGINES:
                 replica = 0
                 snmp_add = SNMP_ADRESS.format(subdomain, engine)
-                isActive = get_engine_status(engine, snmp_add)
-                # isActive = {'id': 8}
+                # isActive = get_engine_status(engine, snmp_add)
+                isActive = {'id': 8}
                 logger.debug('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
                 #Encontrar engine activo
                 if isActive['id'] == 8:
@@ -165,6 +172,11 @@ def create_app():
                             logger.error(e)
                         replica += 1
                 engine += 1
+
+    def getFullTime(tokens):
+        time = ' '.join(tokens[5:7])
+        return mktime(datetime.now().timetuple()) - mktime(datetime.strptime(time.split('.')[0], "%Y-%m-%d %H:%M:%S").timetuple())
+
 
     @app.route("/testPath")
     @cross_origin()
@@ -418,5 +430,58 @@ def create_app():
             logger_intersite.error(e)
 
         return make_wsgi_app()
+
+    
+    @app.route("/api/validateSnapshot")
+    @cross_origin()
+    def validate_snapshot():
+        logger.info("Executing validate_snapshot method")
+
+        try:
+            proc = subprocess.check_output(["bash", "mef_snapshot.bash"])
+            logger.debug('Result {}'.format(proc.rstrip()))
+            
+            # proc = 'drwxr-xr-x 2 mtxdepmef mtxdepmef 4096 2021-09-01 05:00:21.000000000 -0500 20210901\n'
+            tokens = [l for l in proc.split(' ') if l != '']
+            snapshot = tokens[-1]
+            # time = ' '.join(tokens[5:7])
+            # final = mktime(datetime.now().timetuple()) - mktime(datetime.strptime(time.split('.')[0], "%Y-%m-%d %H:%M:%S").timetuple())
+            final = getFullTime(tokens)
+            logger.debug('Last snapshot time {}'.format(final))
+
+
+            METRIC_12.info({'status': str(final <= SNAPSHOT_TIME), 'snapshot': snapshot.rstrip()})
+            METRIC_13.set(final)
+        except Exception as e:
+            logger.error(e)
+
+        return make_wsgi_app()
+
+    
+    # @app.route("/api/validateVolumeSpace")
+    # @cross_origin()
+    # def validate_volume_space():
+    #     logger.info("Executing validate_volume_space method")
+
+    #     try:
+    #         volume = '/mnt/' + request.args.get('volume')
+    #         proc = subprocess.check_output(["df", "-h"])
+    #         logger.debug('Result {}'.format(proc.rstrip()))
+
+    #         # proc = '10.237.25.18:/mnt/matrixx-prod02/k8s/nfs/vols/pvc-585cb561-e3b3-4d09-8f92-791fa71e8ced  480G  213G  268G  45% /mnt/shared-logging-storage-s1e1\n'
+    #         lines = [line for line in proc.splitlines() if volume in line]
+    #         for subdomain in SUBDOMAINS:
+    #             engine = 's'+ str(subdomain) + 'e'
+    #             line = [l for l in lines if engine in l]
+    #             tokens = [l for l in line[0].split(' ') if '%' in l]
+    #             if tokens:
+    #                 percentage = int(tokens[0][:-1])
+    #                 METRIC_14[subdomain - 1].set(percentage)
+
+
+    #     except Exception as e:
+    #         logger.error(e)
+
+    #     return make_wsgi_app()
     
     return app
