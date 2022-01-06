@@ -314,8 +314,9 @@ def create_app():
                         full_path = '{}{}'.format(full_path[0], sort_result[-1])
                         stat = os.stat(full_path)
                         valid_time = mktime(datetime.now().timetuple()) - stat.st_mtime
+                        logger.info('ckpt: {}, now: {}, last_ckpt: {}'.format(full_path,str(mktime(datetime.now().timetuple())), str(stat.st_mtime)))
                         send_alert = valid_time > CHECKPOINT_TIME
-                        logger.debug('Send alert: {}'.format(send_alert))
+                        logger.info('Send alert: {}'.format(send_alert))
                         METRIC_5[subdomain-1].info({'valid': str(send_alert),'subdomain':str(subdomain), 'path':str(full_path[0]) })
                     else:
                         METRIC_5[subdomain-1].info({'valid': str(True),'subdomain':str(subdomain), 'path':'Not found' })
