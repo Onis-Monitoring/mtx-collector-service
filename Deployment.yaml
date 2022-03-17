@@ -1,0 +1,124 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitoring
+  namespace: matrixx-prep-int
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+  selector:
+    app: backup
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backup
+  namespace: matrixx-prep-int
+spec:
+  selector:
+    matchLabels:
+      app: backup
+  template:
+    metadata:
+      name: backup
+      labels:
+        app: backup
+    spec:
+      initContainers:
+      - env:
+        - name: MTX_SYNC_TARGET_DIRS
+          value: /mdc
+        image: mxtltppeharbor.mx.att.com/matrixx_prod01/matrixx/attmex-engine-sideloader-cicd:lab_build_109b
+        imagePullPolicy: IfNotPresent
+        name: sideloader-attmex-engine-sideloader
+        volumeMounts:
+        - mountPath: /sync
+          name: sideloader-sync-dir
+      containers:
+      - image: mtx_collector_test:2.3
+        imagePullPolicy: IfNotPresent
+        name: ctr-1
+        env:
+        - name: TZ
+          value: Mexico/General
+        - name: MTX_DB_URL
+          value: 10.237.2.141:27017,10.237.2.142:27017,10.237.37.213:27017
+        - name: MTX_DB_USER
+          value: MtxEventLoader
+        - name: MTX_DB_PASSWORD
+          value: NUNoREJZRXMK
+        - name: SUBDOMAINS
+          value: '3'
+        - name: ENGINES
+          value: '2'
+        - name: REPLICAS
+          value: '2'
+        - name: LOG_LEVEL
+          value: DEBUG
+        - name: CHECKPOINT_TIME
+          value: '6400'
+        - name: SNAPSHOT_TIME
+          value: '97000'
+        volumeMounts:
+        - mountPath: /dev/shm
+          name: dshm
+        - mountPath: /sync
+          name: sideloader-sync-dir
+        - mountPath: /mnt/routing-cache-checkpoint-ag1
+          name: routing-cache-checkpoint-ag1
+        - mountPath: /mnt/shared-storage-s1e1
+          name: shared-storage-s1e1
+        - mountPath: /mnt/fast-shared-storage-s1e1
+          name: fast-shared-storage-s1e1
+        - mountPath: /mnt/shared-logging-storage-s1e1
+          name: shared-logging-storage-s1e1
+        - mountPath: /mnt/shared-storage-s2e1
+          name: shared-storage-s2e1
+        - mountPath: /mnt/fast-shared-storage-s2e1
+          name: fast-shared-storage-s2e1
+        - mountPath: /mnt/shared-logging-storage-s2e1
+          name: shared-logging-storage-s2e1
+        - mountPath: /mnt/matrixx-data
+          name: matrixx-data
+        - mountPath: /mnt/general-ledger
+          name: general-ledger
+        - mountPath: /mnt/data-export
+          name: data-export-output
+      volumes:
+      - emptyDir:
+          medium: Memory
+        name: dshm
+      - emptyDir: {}
+        name: sideloader-sync-dir
+      - name: routing-cache-checkpoint-ag1
+        persistentVolumeClaim:
+          claimName: routing-cache-checkpoint-ag1
+      - name: shared-storage-s1e1
+        persistentVolumeClaim:
+          claimName: shared-storage-s1e1
+      - name: fast-shared-storage-s1e1
+        persistentVolumeClaim:
+          claimName: fast-shared-storage-s1e1
+      - name: shared-logging-storage-s1e1
+        persistentVolumeClaim:
+          claimName: shared-logging-storage-s1e1
+      - name: shared-storage-s2e1
+        persistentVolumeClaim:
+          claimName: shared-storage-s2e1
+      - name: fast-shared-storage-s2e1
+        persistentVolumeClaim:
+          claimName: fast-shared-storage-s2e1
+      - name: shared-logging-storage-s2e1
+        persistentVolumeClaim:
+          claimName: shared-logging-storage-s2e1
+      - name: matrixx-data
+        persistentVolumeClaim:
+          claimName: matrixx-data
+      - name: general-ledger
+        persistentVolumeClaim:
+          claimName: general-ledger-posting-output
+      - name: data-export-output
+        persistentVolumeClaim:
+          claimName: data-export-output

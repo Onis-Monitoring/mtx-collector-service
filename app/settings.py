@@ -1,4 +1,5 @@
-from prometheus_client import Summary, Info, Gauge
+import os
+from prometheus_client import Summary, Info, Gauge, Counter
 
 # Metrics Definition
 METRIC_1 = [Info('mef_file_backlog_status_1', 'Description of mef backlog'), Info('mef_file_backlog_status_2', 'Description of mef backlog')]
@@ -14,50 +15,28 @@ METRIC_10 = [Gauge('mefs_1','number of mefs in sftp'),Gauge('mefs_2','number of 
 METRIC_11 = Info('inter_site_trace_path', 'Inter site connectivity trace path')
 METRIC_12 = Info('mtx_valid_snapshot', 'Daily snapshot check')
 METRIC_13 = Gauge('mtx_snapshot_time', 'Daily snapshot time')
+METRIC_14 = Counter('http_api_response_time_count', 'http_api_response_time_count')
+METRIC_15 = Counter('http_api_response_time_sum', 'http_api_response_time_sum')
 # METRIC_14 = [Gauge('mtx_volume_space_1','volume space used in percentage'),Gauge('mtx_volume_space_2','volume space used in percentage'),Gauge('mtx_volume_space_3','volume space used in percentage')]
 
 PRICING_STATUS = 'http://rsgateway-ag1:8080/rsgateway/data/json/pricing/status'
 
-LOG_LEVEL = 'DEBUG'
-# MEF_LOG_FILE = r'D:\Trabajo\Onis\Monitoring\Monitoring_v2\grafana-python-datasource-master\grafana-python-datasource-master\flask\publish_mefs.log'
-MEF_LOG_FILE = r'/etc/prometheus/publish_mefs.log'
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG')
 MEF_LOG_FILE_PATH = r'/mnt/shared-logging-storage-s{0}e{1}/publ-s{0}e{1}-{2}/{3}'
-# MEF_LOG_FILE_PATH = r'/etc/prometheus/shared-logging-storage-s{0}e{1}/publ-s{0}e{1}-{2}/{3}'
 MEF_LOG_FILE_NAME = 'publish_mefs.log'
-# PATH_TO_MEF_BACKLOG = r'/etc/prometheus/publish_mefs.log'
-# PATH_TO_MEF_BACKLOG = r'./publish_'
 PATH_TO_MEF_BACKLOG = r'/mnt/fast-shared-storage-s{0}e{1}/local_{1}_2_{2}/staging/mef_temp'
 PATH_CHECKPOINT = r'/mnt/shared-storage-s{0}e*/checkpoints/'
 
 ERL_USER = "MtxAdmin"
 ERL_HOST = "--host=10.237.3.143"
 # ERL_HOST = "--host=mongo-0.mongo.mongodb.svc.cluster.local"
-EVENT_REPOSITORY_LOADER = ["print_event_repository_loader_trace.py", "-g", "-u", ERL_USER, ERL_HOST]
+EVENT_REPOSITORY_LOADER = ["print_event_repository_loader_trace.py", "-g", "-u", ERL_USER, "--host={}".format(ERL_HOST)]
 
 SNMP_ADRESS = 'publ-cls-s{}e{}:4700'
 
-SUBDOMAINS = [1,2,3]
-ENGINES = 2
-REPLICAS = 2
+SUBDOMAINS = int(os.getenv('SUBDOMAINS', 3))
+ENGINES = int(os.getenv('ENGINES', 2))
+REPLICAS = int(os.getenv('REPLICAS', 2))
 ENGINE = 1
-CHECKPOINT_TIME=5400
-SNAPSHOT_TIME=87000 # 1d 10 min
-
-PRICING_STATUS_JSON_MOCK = {
-    "$": "MtxResponsePricingStatus",
-    "ActivateTime": "2021-04-13T18:12:20.880162-05:00",
-    "CreateLoginId": "henrique",
-    "Domain": "ATTMex_5212_v0",
-    "IsActivePricing": False,
-    "MaxServiceProviderSchemaVersion": 15,
-    "MaxSysSchemaVersion": 5212,
-    "ModifiedTime": "2021-04-09T08:53:36.815000-05:00",
-    "Repository": "file:///var/mtx_catalog_builder/repo/ATTMex_5212_v0",
-    "Result": 0,
-    "ResultText": "OK",
-    "Rev": 100,
-    "RouteId": 1,
-    "_resultCode": 0,
-    "_resultText": "OK",
-    "_resultType": "get"
-}
+CHECKPOINT_TIME= int(os.getenv('CHECKPOINT_TIME', 5400))
+SNAPSHOT_TIME= int(os.getenv('SNAPSHOT_TIME', 87000)) # 1d 10 min

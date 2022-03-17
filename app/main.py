@@ -15,34 +15,34 @@ from flask import request
 from flask_cors import CORS, cross_origin
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
-from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, METRIC_6, METRIC_7, METRIC_8, METRIC_9, PRICING_STATUS, MEF_LOG_FILE,\
+from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, METRIC_6, METRIC_7, METRIC_8, METRIC_9, PRICING_STATUS,\
 METRIC_10, METRIC_11, METRIC_12, METRIC_13, PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, REPLICAS,\
-EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME, ENGINES, SNAPSHOT_TIME
+PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME, ENGINES, SNAPSHOT_TIME
 from time import mktime
 from logger import logger, logger_intersite
 import socket,time,sys 
 from timeit import default_timer as timer
-# from snmp_service import get_engine_status
+from snmp_service import get_engine_status
 
 # logger = logger()
 logger = logger(__name__, logging.DEBUG)
 logger_intersite = logger_intersite('intersite', logging.DEBUG)
 
-# def get_engine_status(engine, snmp_add, test=False):
-#     if not test:
-#         from snmp_service import get_engine_status
-#         return get_engine_status(engine, snmp_add)
+def get_engine_status(engine, snmp_add, test=False):
+    if not test:
+        from snmp_service import get_engine_status
+        return get_engine_status(engine, snmp_add)
 
-#     return {'id': 8}
+    return {'id': 8}
 
 def create_app():
     __author__ = 'Edgar Lopez'
     __copyright__ = 'Copyright (C) 2020 Edgar Lopez'
     __license__ = 'Onis Solutions'
-    __version__ = '2.0'
+    __version__ = '3.0'
     __maintainer__ = 'Edgar Lopez'
     __email__ = 'edgar.lopez@onissolutions.com'
-    __status__ = 'Prod'
+    __status__ = 'Prep'
 
     app = Flask(__name__)
     cors = CORS(app)
@@ -96,15 +96,16 @@ def create_app():
         subdomain = 1
         PATH = ''
         # while subdomain <= SUBDOMAINS:
-        for subdomain in SUBDOMAINS:
+        for subdomain in range(1, SUBDOMAINS+1):
+        # for subdomain in SUBDOMAINS:
             engine = ENGINE
             while engine <= ENGINES:
                 replica = 0
                 tmp_time = 0.0
                 tmp_path = ''
                 snmp_add = SNMP_ADRESS.format(subdomain, engine)
-                # isActive = get_engine_status(engine, snmp_add)
-                isActive = {'id': 8}
+                isActive = get_engine_status(engine, snmp_add)
+                # isActive = {'id': 8}
                 logger.debug('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
                 #Encontrar engine activo
                 if isActive['id'] == 8:
@@ -141,13 +142,14 @@ def create_app():
     def getMefBackLog():
         # subdomain = 1
         PATH = ''
-        for subdomain in SUBDOMAINS:
+        for subdomain in range(1, SUBDOMAINS+1):
+        # for subdomain in SUBDOMAINS:
             engine = ENGINE
             while engine <= ENGINES:
                 replica = 0
                 snmp_add = SNMP_ADRESS.format(subdomain, engine)
-                # isActive = get_engine_status(engine, snmp_add)
-                isActive = {'id': 8}
+                isActive = get_engine_status(engine, snmp_add)
+                # isActive = {'id': 8}
                 logger.debug('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
                 #Encontrar engine activo
                 if isActive['id'] == 8:
@@ -178,11 +180,6 @@ def create_app():
         return mktime(datetime.now().timetuple()) - mktime(datetime.strptime(time.split('.')[0], "%Y-%m-%d %H:%M:%S").timetuple())
 
 
-    @app.route("/testPath")
-    @cross_origin()
-    def testPath():
-        return make_wsgi_app()
-
     @app.route("/")
     @cross_origin()
     def index():
@@ -201,7 +198,7 @@ def create_app():
         else:    
             max_latency= int(timeout)
 
-        message="get cluster_state #0001-16f5bd2d"
+        # message="get cluster_state #0001-16f5bd2d"
 
         # sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # sock.settimeout(max_latency)
@@ -273,6 +270,9 @@ def create_app():
     @cross_origin()
     def check_event_loader():
         logger.info("Executing check_event_loader method")
+        mongo_host = request.args.get('MONGO_HOST')
+        mongo_user = request.args.get('MONGO_USER')
+        EVENT_REPOSITORY_LOADER = ["print_event_repository_loader_trace.py", "-g", "-u", mongo_user, "--host={}".format(mongo_host)]
         result = subprocess.check_output(EVENT_REPOSITORY_LOADER)
         lines = result.splitlines()
         dictMetric = {}
@@ -301,7 +301,8 @@ def create_app():
     def check_last_checkpointijng():
         logger.info("Executing check_last_checkpointijng method")
         PATH = ''
-        for subdomain in SUBDOMAINS:
+        # for subdomain in SUBDOMAINS:
+        for subdomain in range(1, SUBDOMAINS+1):
             try:
                 send_alert = False
                 PATH = PATH_CHECKPOINT.format(subdomain)
@@ -331,7 +332,8 @@ def create_app():
     @cross_origin()
     def validate_checkpoint_errors():
         logger.info("Executing validate_checkpoint_errors method")
-        for subdomain in SUBDOMAINS:
+        for subdomain in range(1, SUBDOMAINS+1):
+        # for subdomain in SUBDOMAINS:
             try:
                 # engine = ENGINE
                 errors = 0
@@ -362,7 +364,7 @@ def create_app():
     def validate_mefs_destination():
         logger.info("Executing validate_mefs_destination method")
         try:
-            proc = subprocess.check_output(["bash", "collect_processing_files.bash"])
+            proc = subprocess.check_output(["bash", "utils/collect_processing_files.bash"])
             lines = proc.splitlines()
             for i, line in enumerate(lines):
                 logger.debug(line)
@@ -382,9 +384,10 @@ def create_app():
     @cross_origin()
     def validate_mefs_destination_number():
         logger.info("Executing validate_mefs_destination_number method")
-        for subdomain in SUBDOMAINS:
+        for subdomain in range(1, SUBDOMAINS+1):
+        # for subdomain in SUBDOMAINS:
             try:
-                proc = subprocess.check_output(["bash", "mef_list_total.bash", str(subdomain)])
+                proc = subprocess.check_output(["bash", "utils/mef_list_total.bash", str(subdomain)])
                 logger.debug('Result {}'.format(proc))
                 try:
                     files = int(proc)
@@ -439,7 +442,7 @@ def create_app():
         logger.info("Executing validate_snapshot method")
 
         try:
-            proc = subprocess.check_output(["bash", "mef_snapshot.bash"])
+            proc = subprocess.check_output(["bash", "utils/mef_snapshot.bash"])
             logger.debug('Result {}'.format(proc.rstrip()))
             
             # proc = 'drwxr-xr-x 2 mtxdepmef mtxdepmef 4096 2021-09-01 05:00:21.000000000 -0500 20210901\n'
@@ -458,31 +461,8 @@ def create_app():
 
         return make_wsgi_app()
 
-    
-    # @app.route("/api/validateVolumeSpace")
-    # @cross_origin()
-    # def validate_volume_space():
-    #     logger.info("Executing validate_volume_space method")
 
-    #     try:
-    #         volume = '/mnt/' + request.args.get('volume')
-    #         proc = subprocess.check_output(["df", "-h"])
-    #         logger.debug('Result {}'.format(proc.rstrip()))
-
-    #         # proc = '10.237.25.18:/mnt/matrixx-prod02/k8s/nfs/vols/pvc-585cb561-e3b3-4d09-8f92-791fa71e8ced  480G  213G  268G  45% /mnt/shared-logging-storage-s1e1\n'
-    #         lines = [line for line in proc.splitlines() if volume in line]
-    #         for subdomain in SUBDOMAINS:
-    #             engine = 's'+ str(subdomain) + 'e'
-    #             line = [l for l in lines if engine in l]
-    #             tokens = [l for l in line[0].split(' ') if '%' in l]
-    #             if tokens:
-    #                 percentage = int(tokens[0][:-1])
-    #                 METRIC_14[subdomain - 1].set(percentage)
-
-
-    #     except Exception as e:
-    #         logger.error(e)
-
-    #     return make_wsgi_app()
     
     return app
+
+    
