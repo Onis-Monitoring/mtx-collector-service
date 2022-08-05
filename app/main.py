@@ -22,18 +22,18 @@ from time import mktime
 from logger import logger, logger_intersite
 import socket,time,sys 
 from timeit import default_timer as timer
-# from snmp_service import get_engine_status
+from snmp_service import get_engine_status
 
 # logger = logger()
 logger = logger(__name__, logging.DEBUG)
 logger_intersite = logger_intersite('intersite', logging.DEBUG)
 
-# def get_engine_status(engine, snmp_add, test=False):
-#     if not test:
-#         from snmp_service import get_engine_status
-#         return get_engine_status(engine, snmp_add)
+def get_engine_status(engine, snmp_add, test=False):
+    if not test:
+        from snmp_service import get_engine_status
+        return get_engine_status(engine, snmp_add)
 
-#     return {'id': 8}
+    return {'id': 8}
 
 def create_app():
     __author__ = 'Edgar Lopez'
@@ -103,8 +103,8 @@ def create_app():
                 tmp_time = 0.0
                 tmp_path = ''
                 snmp_add = SNMP_ADRESS.format(subdomain, engine)
-                # isActive = get_engine_status(engine, snmp_add)
-                isActive = {'id': 8}
+                isActive = get_engine_status(engine, snmp_add)
+                # isActive = {'id': 8}
                 logger.debug('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
                 #Encontrar engine activo
                 if isActive['id'] == 8:
@@ -146,8 +146,8 @@ def create_app():
             while engine <= ENGINES:
                 replica = 0
                 snmp_add = SNMP_ADRESS.format(subdomain, engine)
-                # isActive = get_engine_status(engine, snmp_add)
-                isActive = {'id': 8}
+                isActive = get_engine_status(engine, snmp_add)
+                # isActive = {'id': 8}
                 logger.debug('Subdomain {} Engine {} status: {}'.format(subdomain, engine, isActive['id']))
                 #Encontrar engine activo
                 if isActive['id'] == 8:
@@ -176,12 +176,6 @@ def create_app():
     def getFullTime(tokens):
         time = ' '.join(tokens[5:7])
         return mktime(datetime.now().timetuple()) - mktime(datetime.strptime(time.split('.')[0], "%Y-%m-%d %H:%M:%S").timetuple())
-
-
-    @app.route("/testPath")
-    @cross_origin()
-    def testPath():
-        return make_wsgi_app()
 
     @app.route("/")
     @cross_origin()

@@ -30,9 +30,11 @@ PATH_TO_MEF_BACKLOG = r'/mnt/fast-shared-storage-s{0}e{1}/local_{1}_2_{2}/stagin
 PATH_CHECKPOINT = r'/mnt/shared-storage-s{0}e*/checkpoints/'
 
 ERL_USER = "MtxAdmin"
-ERL_HOST = "--host=10.237.3.143"
+#ERL_HOST = "--host=10.237.3.143"
+ERL_HOST = "--uri='mongodb://oc9230:h3gyDRmy_4Tt@10.237.2.143:27017/?authSource=$external&authMechanism=PLAIN'"
 # ERL_HOST = "--host=mongo-0.mongo.mongodb.svc.cluster.local"
-EVENT_REPOSITORY_LOADER = ["print_event_repository_loader_trace.py", "-g", "-u", ERL_USER, ERL_HOST]
+#EVENT_REPOSITORY_LOADER = ["print_event_repository_loader_trace.py", "-g", "-u", ERL_USER, ERL_HOST]
+EVENT_REPOSITORY_LOADER = ["print_event_repository_loader_trace.py", "-g", ERL_HOST]
 
 SNMP_ADRESS = 'publ-cls-s{}e{}:4700'
 
