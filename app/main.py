@@ -267,26 +267,29 @@ def create_app():
     @cross_origin()
     def check_event_loader():
         logger.info("Executing check_event_loader method")
-        result = subprocess.check_output(EVENT_REPOSITORY_LOADER)
-        lines = result.splitlines()
-        dictMetric = {}
-        send_alert = False
-        missing_ranges = False
-        c = 1
-        for line in lines:
-            if 'Sub-domain' in line:
-                dictMetric['subdomain'] = str(line)
-            if 'GTC ranges are missing' in line:
-                missing_ranges = True
-            if ('- ' in line) & missing_ranges:
-                send_alert = True
-                dictMetric['range_{}'.format(c)] = line
-                c += 1
-        if send_alert:
-            logger.info("Sending to prometheus")
-            METRIC_4.info(dictMetric)
-        else:
-            METRIC_4.info({'range_1': ''})
+        try:
+            result = subprocess.check_output(EVENT_REPOSITORY_LOADER)
+            lines = result.splitlines()
+            dictMetric = {}
+            send_alert = False
+            missing_ranges = False
+            c = 1
+            for line in lines:
+                if 'Sub-domain' in line:
+                    dictMetric['subdomain'] = str(line)
+                if 'GTC ranges are missing' in line:
+                    missing_ranges = True
+                if ('- ' in line) & missing_ranges:
+                    send_alert = True
+                    dictMetric['range_{}'.format(c)] = line
+                    c += 1
+            if send_alert:
+                logger.info("Sending to prometheus")
+                METRIC_4.info(dictMetric)
+            else:
+                METRIC_4.info({'range_1': ''})
+        except Exception as e:
+            logger.error('Error on check_event_loader: {}'.format(e))
         return make_wsgi_app()
 
 
