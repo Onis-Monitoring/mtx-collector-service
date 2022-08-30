@@ -44,6 +44,7 @@ REPLICAS = 2
 ENGINE = 1
 CHECKPOINT_TIME=5400
 SNAPSHOT_TIME=87000 # 1d 10 min
+BASH_LOCATION='/scripts/'
 
 PRICING_STATUS_JSON_MOCK = {
     "$": "MtxResponsePricingStatus",

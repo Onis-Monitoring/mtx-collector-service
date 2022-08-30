@@ -17,7 +17,7 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
 from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, METRIC_6, METRIC_7, METRIC_8, METRIC_9, PRICING_STATUS, MEF_LOG_FILE,\
 METRIC_10, METRIC_11, METRIC_12, METRIC_13, PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, REPLICAS,\
-EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME, ENGINES, SNAPSHOT_TIME
+EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME, ENGINES, SNAPSHOT_TIME, BASH_LOCATION
 from time import mktime
 from logger import logger, logger_intersite
 import socket,time,sys 
@@ -359,7 +359,7 @@ def create_app():
     def validate_mefs_destination():
         logger.info("Executing validate_mefs_destination method")
         try:
-            proc = subprocess.check_output(["bash", "collect_processing_files.bash"])
+            proc = subprocess.check_output(["bash", "{}collect_processing_files.bash".format(BASH_LOCATION)])
             lines = proc.splitlines()
             for i, line in enumerate(lines):
                 logger.debug(line)
@@ -381,7 +381,7 @@ def create_app():
         logger.info("Executing validate_mefs_destination_number method")
         for subdomain in SUBDOMAINS:
             try:
-                proc = subprocess.check_output(["bash", "mef_list_total.bash", str(subdomain)])
+                proc = subprocess.check_output(["bash", "{}mef_list_total.bash".format(BASH_LOCATION), str(subdomain)])
                 logger.debug('Result {}'.format(proc))
                 try:
                     files = int(proc)
@@ -436,7 +436,7 @@ def create_app():
         logger.info("Executing validate_snapshot method")
 
         try:
-            proc = subprocess.check_output(["bash", "mef_snapshot.bash"])
+            proc = subprocess.check_output(["bash", "{}mef_snapshot.bash".format(BASH_LOCATION)])
             logger.debug('Result {}'.format(proc.rstrip()))
             
             # proc = 'drwxr-xr-x 2 mtxdepmef mtxdepmef 4096 2021-09-01 05:00:21.000000000 -0500 20210901\n'
