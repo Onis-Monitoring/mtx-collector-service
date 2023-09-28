@@ -1,6 +1,6 @@
 # flask_web/app.py
 
-from app.logger import logger
+from logger import logger
 import subprocess
 import json
 import os
@@ -17,7 +17,8 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
 from settings import METRIC_1, METRIC_2, METRIC_3, METRIC_4,METRIC_5, METRIC_6, METRIC_7, METRIC_8, METRIC_9, PRICING_STATUS, MEF_LOG_FILE,\
 METRIC_10, METRIC_11, METRIC_12, METRIC_13, PATH_TO_MEF_BACKLOG, MEF_LOG_FILE_NAME, MEF_LOG_FILE_PATH, SNMP_ADRESS, SUBDOMAINS, REPLICAS,\
-EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,ENGINE,CHECKPOINT_TIME, ENGINES, SNAPSHOT_TIME, BASH_LOCATION
+EVENT_REPOSITORY_LOADER,PATH_CHECKPOINT,CHECKPOINT_TIME, ENGINES, SNAPSHOT_TIME, BASH_LOCATION
+from local_settings import ENGINE
 from time import mktime
 from logger import logger, logger_intersite
 import socket,time,sys 
@@ -203,8 +204,10 @@ def create_app():
 
         start=timer()
         try:
-            proc = subprocess.check_output(["ping", "-c", "1", remote_host])
-            lines = [l for l in [line for line in proc.splitlines() if 'time=' in line][0].split(' ') if 'time' in l]
+            # proc = subprocess.check_output(["ping", "-c", "1", remote_host])
+            proc = subprocess.check_output(["sudo", "ping", "-c", "1", remote_host])
+            # lines = [l for l in [line for line in proc.splitlines() if 'time=' in line][0].split(' ') if 'time' in l]
+            lines = [l for l in [line for line in str(proc).splitlines() if 'time=' in line][0].split(' ') if 'time' in l]
             latency = float(lines[0].split('=')[1])
             # data,address=sock.recvfrom(4096)
             # elapsed=(timer()-start)*1000
@@ -336,7 +339,8 @@ def create_app():
                 # engine_name = 's{}e{}'.format(subdomain,engine)
                 engine_name = 's{}e'.format(subdomain)
                 proc = subprocess.check_output(["kubectl", "get", "--sort-by=.metadata.creationTimestamp", "pods"])
-                lines = [line for line in proc.splitlines() if 'validate' in line and engine_name in line]
+                # lines = [line for line in proc.splitlines() if 'validate' in line and engine_name in line]
+                lines = [line for line in str(proc).splitlines() if 'validate' in line and engine_name in line]
                 if lines:
                     splitline = [l for l in lines[-1].split(' ') if l != '']
                     if splitline and 'validate' in splitline[0]:
@@ -364,9 +368,12 @@ def create_app():
             for i, line in enumerate(lines):
                 logger.debug(line)
                 # line = '-rwxrwxr-x 1 mtxdepmef mtxdepmef 57 2021-07-03 06:56:48.628752148 -0500 /opt/matrixx/mef/NOD003/PublishProgress.engine_2'
-                time = ' '.join([l for l in line.split(' ') if l != ''][5:7])
+                # time = ' '.join([l for l in line.split(' ') if l != ''][5:7])
+                time = ' '.join([l for l in str(line).split(' ') if l != ''][5:7])
                 final = mktime(datetime.now().timetuple()) - mktime(datetime.strptime(time.split('.')[0], "%Y-%m-%d %H:%M:%S").timetuple()) > 120
-                values = [l for l in line.split(' ') if l != ''][-1].split('/')[-2:]
+                # values = [l for l in line.split(' ') if l != ''][-1].split('/')[-2:]
+                values = [l for l in str(line).split(' ') if l != ''][-1].split('/')[-2:]
+
 
                 METRIC_7[i].info({'status': str(final),'node':values[0], 'file':values[1] })
         except Exception as e:
@@ -409,15 +416,19 @@ def create_app():
             logger_intersite.info('tracepath: \r\n{}'.format(proc))
             # proc = subprocess.check_output(["cat", '../assets/tracepath.out'])
             lines = [line for line in proc.splitlines()]
+
             for line in lines:
                 if no_replay_count > 3:
                     break
-                word = [q for q in [l for l  in line.split(' ')] if q!='']
-                if 'ms' in line:
+                # word = [q for q in [l for l  in line.split(' ')] if q!='']
+                word = [q for q in [l for l  in str(line).split(' ')] if q!='']
+                # if 'ms' in line:
+                if 'ms' in str(line):
                     no_replay_count = 0
                     if len(word) > 3:
                         dict[word[1]] = word[2]
-                elif 'no reply' in line:
+                # elif 'no reply' in line:
+                elif 'no reply' in str(line):
                     no_replay_count += 1
                     dict[word[0]] = 'no reply'
                 
@@ -440,7 +451,8 @@ def create_app():
             logger.debug('Result {}'.format(proc.rstrip()))
             
             # proc = 'drwxr-xr-x 2 mtxdepmef mtxdepmef 4096 2021-09-01 05:00:21.000000000 -0500 20210901\n'
-            tokens = [l for l in proc.split(' ') if l != '']
+            # tokens = [l for l in proc.split(' ') if l != '']
+            tokens = [l for l in str(proc).split(' ') if l != '']
             snapshot = tokens[-1]
             # time = ' '.join(tokens[5:7])
             # final = mktime(datetime.now().timetuple()) - mktime(datetime.strptime(time.split('.')[0], "%Y-%m-%d %H:%M:%S").timetuple())
